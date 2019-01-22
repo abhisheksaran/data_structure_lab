@@ -1,0 +1,623 @@
+﻿Q1
+…………………………………...
+
+
+#include<stdio.h>
+#include<stdlib.h>
+//global variable to keep track of queue's front and back position
+int front=0;
+int back=1;
+
+
+//structure for linked list node
+typedef struct createNode
+{
+    int value;
+    struct createNode* next;
+}createNode;
+//function to create a new node which returns pointer to it.
+createNode* newNode(int v)
+{
+    createNode* temp=(createNode*)malloc(sizeof(createNode));
+    temp->value=v;
+    temp->next=NULL;
+    return temp;    
+}
+//structure to pointer to adj list
+typedef struct adjList
+{
+    createNode* head;    
+}adjList;
+//structure graph having n vertices and adj lists;
+typedef struct graph
+{
+    int n;
+    adjList* list;
+}graph;
+//functio to crate graph of n vertices and n adj lists
+graph* intializeGraph(int vertex)
+{
+    graph* Graph=malloc(sizeof(graph));
+    Graph->n=vertex;
+    Graph->list=malloc(vertex*sizeof(adjList));
+    //intializing all adj lists empty
+    for(int i=0;i<vertex;i++)
+    {
+            Graph->list[i].head=NULL;    
+    }
+    return Graph;
+}
+//function to add edge
+void addEdge(graph* Graph,int u,int v)
+{
+    createNode* temp=newNode(v);
+    createNode* current=Graph->list[u].head;
+    createNode* prev=NULL;
+    while(current!=NULL && current->value<temp->value)
+    {
+            prev=current;
+            current=current->next;
+    }           
+    if(prev==NULL)
+    {    
+            temp->next=Graph->list[u].head;
+            Graph->list[u].head=temp;    
+    }
+    else if(current ==NULL)
+    {
+            prev->next=temp;
+    }
+    else
+    {
+            temp->next=current;
+            prev->next=temp;            
+    }
+    
+}
+
+
+
+
+
+
+
+
+
+
+//structure to store distances
+typedef struct distance
+{
+
+
+    int *dist;
+    
+}distance;
+//intialize all distances to -1 except with itself=0
+distance* intlDistance(graph* Graph)
+{    //a array of n vertices in which ith ele shows the distances from vertex i
+    distance* Distance=(distance*)malloc(Graph->n*sizeof(distance));
+    
+    for(int i=0;i<Graph->n;i++)
+    {    //i th ele have n memberes array associated with it in which entry i,j shows distance of i to j'
+            Distance[i].dist=(int *)malloc(Graph->n*sizeof(int));
+                 for(int j=0;j<Graph->n;j++)
+            {
+                    Distance[i].dist[j]=-1;    
+                    if(i==j)
+                    {
+                            Distance[i].dist[j]=0;
+                    }
+            }    
+    }
+    return Distance;
+}
+//function to insert ele at back in queue
+void enqueue(int *queue,int value)
+{
+            queue[back]=value;
+            back++;
+}
+//function to deq ele from front in queue
+int dequeue(int *queue)
+{
+            int a=queue[front];
+            front++;
+            return a;
+    
+}
+//function to implement algorithm bfs    
+distance* algoBfs(graph* Graph,int s)
+{
+    distance* Distance=intlDistance(Graph);    
+    int queue[1000];
+    //want to find distances from s
+    queue[0]=s;
+    //while queue is empty
+    while(front!=back)
+    {    //deq ele
+            int u=dequeue(queue);
+            createNode* temp=Graph->list[u].head;
+            //for all it's neighbours which are unvisited, update distances
+            while(temp!=NULL)
+            {    
+                    if(Distance[s].dist[temp->value]==-1)
+                    {    //yet unvisited , enq it's value
+                            enqueue(queue,temp->value);
+                            //update distances of child from s =distances of parent from s+1
+                            Distance[s].dist[temp->value]=Distance[s].dist[u]+1;
+                            //as graph is indirc so dist(i,j)=dist(j,i)
+                            Distance[temp->value].dist[s]=Distance[s].dist[temp->value];
+                    }
+                    //next neighbour            
+                    temp=temp->next;
+            }
+            
+    }
+    return Distance;
+}
+//print function the output
+void printIt(graph* Graph,distance* Distance,int s,int k)
+{    
+    for(int i=0;i<Graph->n;i++)
+    {    //print all the vertex number which is at most =k from s and obviously reachable
+            if(Distance[s].dist[i]<=k&&Distance[s].dist[i]!=-1)
+            printf("%d ",i);
+    }
+    
+}
+
+
+//to convert int string in integer
+int stoi(char* string)
+{
+    int a;
+    sscanf(string,"%d",&a);
+    return a;
+}
+
+
+int main()
+{    //input number of vertex,s and k
+    int vertex;
+    scanf("%d",&vertex);
+    graph* Graph=intializeGraph(vertex);
+    int s;
+    int k;
+    scanf("%d %d\n",&s,&k);
+    char a[2];
+    char b[2];
+    int lineNo=0;
+    char line[5];
+    int u,v;
+    //input edge a and b as string
+    while(fgets(line,sizeof(line),stdin))
+    {
+            sscanf(line,"%s %s",a,b);
+                    u=stoi(a);
+            v=stoi(b);
+            //as it's undirc graph an edge u,v also means edge v to u.
+            addEdge(Graph,u,v);
+            addEdge(Graph,v,u);
+            lineNo++;    
+    }
+    //RUNNING BFS AND GETTING DISTANCES
+    distance* Distance=algoBfs(Graph,s);
+    //PRIUNTING THE REQUIRED OUTPUT FROM DISTANCES
+    printIt(Graph,Distance,s,k);
+    printf("\n");
+    
+}
+…………………………………
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Q2
+…………………………………..
+
+
+#include<stdio.h>
+#include<stdlib.h>
+//structure for a tree node
+typedef struct createNode
+{
+    int value;
+    struct createNode* left;
+    struct createNode* right;
+}createNode;
+//structure for a pointer name parent to a tree node
+typedef struct parent
+{
+    createNode* parent;
+}parent;
+
+
+//intializing  tree with value as root and left, right =NULL
+createNode* intlizeTree(int data)
+{
+    createNode* head=(createNode*)malloc(sizeof(createNode));
+    head->value=data;
+    head->left=NULL;
+    head->right=NULL;
+    return head;    
+}
+//creating a function to create the rest of the tree
+void createTree(int data, createNode** head)
+{    //pointer to root
+    createNode* temp=*head;
+    //till we got a empty entry
+    while(temp->left!=NULL&&temp->right!=NULL)    
+    {    //our first priority is to fill left
+            //so if a parent's left 's either left or right is empty go toward it
+            if(temp->left->left==NULL||temp->left->right==NULL)
+            temp=temp->left;
+            //if we reached here means left is fulfilled so we will see right
+            else
+            temp=temp->right;
+            
+    }
+    //if we come out of while loop beacause of both left and right is NULL or only left is NULL, fill the entry in left
+    if(temp->left==NULL)
+    {    createNode* temp2;
+            temp2=(createNode*)malloc(sizeof(createNode));
+            temp2->value=data;
+            temp2->left=NULL;
+            temp2->right=NULL;
+            temp->left=temp2;
+            
+    }
+    //if we reach here means left is full and right is empty so fill in the values
+    else if(temp->right==NULL)
+    {
+            createNode* temp2;
+            temp2=(createNode*)malloc(sizeof(createNode));
+            temp2->value=data;
+            temp2->left=NULL;
+            temp2->right=NULL;
+            temp->right=temp2;
+                                    
+    }
+}
+//function to print inorder ie first left then parent then right
+void inorder(createNode** head)
+{
+    createNode* temp=*head;
+    //if root is the only member in print it
+    if(temp->left==NULL&&temp->right==NULL)
+            printf("%d ",temp->value);
+    //if root is the only member in print it
+    if(temp->left==NULL&&temp->right!=NULL)
+    {
+            printf("%d ",temp->value);
+            inorder(&temp->right);
+    }    
+    //if right is NULL but left not,  print inorder of left then print parent
+    if(temp->left!=NULL&&temp->right==NULL)
+    {
+            inorder(&temp->left);
+            printf("%d ",temp->value);    
+    }
+    //if both is not NULL, print inorder of left Then print parent then print inorder of right
+    if(temp->left!=NULL&&temp->right!=NULL)
+    {
+            inorder(&temp->left);
+            printf("%d ",temp->value);
+            inorder(&temp->right);    
+    }
+    
+}
+//function to print inorder ie first parent then left then right
+void preorder(createNode** head)
+{
+    createNode* temp=*head;
+    //if head is not NULL print it as it is parent
+    if(temp!=NULL)
+            printf("%d ",temp->value);
+    //if left is NULL but right not,print preorder of right
+    if(temp->left==NULL&&temp->right!=NULL)
+    {
+            
+            preorder(&temp->right);
+    }    
+    //if right is NULL but left not, print preorder of left
+    if(temp->left!=NULL&&temp->right==NULL)
+    {
+            preorder(&temp->left);
+            
+    }
+    //if both is not NULL, first print preorder of left then preorder of right
+    if(temp->left!=NULL&&temp->right!=NULL)
+    {
+            preorder(&temp->left);
+            preorder(&temp->right);    
+    }
+    
+}
+//function to print inorder ie first left then right then parent
+void postorder(createNode** head)
+{
+    createNode* temp=*head;
+    
+    //if left is NULL but right not,print postorder of right
+    if(temp->left==NULL&&temp->right!=NULL)
+    {
+            
+            postorder(&temp->right);
+    }    
+    //if right is NULL but left not, print postorder of left
+    if(temp->left!=NULL&&temp->right==NULL)
+    {
+            postorder(&temp->left);
+            
+    }
+    //if both is not NULL, first print postorder of left then postorder of right
+    if(temp->left!=NULL&&temp->right!=NULL)
+    {
+            postorder(&temp->left);
+            postorder(&temp->right);    
+    }
+    //if temp is not equal to NULL print it as its left and right till fuction reaches here, has been printed
+    if(temp!=NULL)
+            printf("%d ",temp->value);
+}
+
+
+
+
+//inputs
+int main()
+{
+    int vertices;
+    int root;
+    int data;
+    scanf("%d",&vertices);
+    scanf("%d",&root);
+    //intialize tree with root
+    createNode* head =intlizeTree(root);
+    
+    for(int i=0;i<vertices-1;i++)
+    {
+            scanf("%d",&data);
+            createTree(data,&head);
+            
+    }
+    //we are gonna print if there is at least one ele o/w there is nothing to print
+    if(vertices>0)
+    {
+            inorder(&head);
+            printf("\n");
+            preorder(&head);
+            printf("\n");
+            postorder(&head);
+                    printf("\n");
+    }
+    
+
+
+}
+………………………
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Q3
+
+
+………………………
+
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+//global variable to take care of stack's top element
+int front=-1;
+//structure for a tree node
+typedef struct createNode
+{
+    char value;
+    struct createNode* left;
+    struct createNode* right;
+}createNode;
+//structure for a pointer name parent to a tree node
+typedef struct parent
+{
+    createNode* parent;
+}parent;
+
+
+//intializing  tree with value as root and left, right =NULL
+createNode* intlizeTree(int data)
+{
+    createNode* head=(createNode*)malloc(sizeof(createNode));
+    head->value=data;
+    head->left=NULL;
+    head->right=NULL;
+    return head;    
+}
+//creating a function to add it's right and left entries
+createNode* createTree(char data,createNode** left,createNode** right)
+{
+    createNode* head=intlizeTree(data);
+    head->value=data;
+    head->left=*left;
+    head->right=*right;
+    return head;
+}
+//function to print inorder ie first left then parent then right
+void inorder(createNode** head)
+{
+    createNode* temp=*head;
+    //if root is the only member in print it
+    if(temp->left==NULL&&temp->right==NULL)
+            printf("%c",temp->value);
+    //if root is the only member in print it
+    if(temp->left==NULL&&temp->right!=NULL)
+    {
+            printf("%c",temp->value);
+            inorder(&temp->right);
+    }    
+    //if right is NULL but left not,  print inorder of left then print parent    
+    if(temp->left!=NULL&&temp->right==NULL)
+    {
+            inorder(&temp->left);
+            printf("%c",temp->value);    
+    }
+    //if both is not NULL, print inorder of left Then print parent then print inorder of right
+    if(temp->left!=NULL&&temp->right!=NULL)
+    {
+            inorder(&temp->left);
+            printf("%c",temp->value);
+            inorder(&temp->right);    
+    }
+    
+}
+//fuction to push an ele on stack
+void push(createNode** a,createNode** stack)
+{    front++;
+    stack[front]=*a;    
+}
+//function to pop an ele from top of the stack, returninf that element
+createNode* pop(createNode** stack)
+{
+    createNode* a;
+    a=stack[front];
+    front--;
+    return a;
+}
+
+
+int main()
+{
+    //array to store input , intl all ele are char zero
+    char array[100]={"0"};
+    //stack of the pointer of type createNode
+    createNode* stack[100];
+    scanf("%s",array);
+    int i=0;
+    int size=0;
+    //when array[i]=0 means the final tree has been made there is no more ele to work on
+    
+    while(array[i]!=0)
+    {    //id  current ele is a operator
+            if(array[i]=='+'||array[i]=='-'||array[i]=='*'||array[i]=='/'){
+                    createNode* a=pop(stack);
+                    createNode* b=pop(stack);
+                    //pop the upper two tree pointer and create a tree having parent current and right and left respectively top two
+                    createNode* temp=createTree(array[i],&b,&a);
+                    //push the pointer of that newly made tree on stack
+                    push(&temp,stack);
+            
+            }
+            //otherwise just itlz a tree pointer and push it on the top of stack
+            else
+            {
+                    createNode* temp=intlizeTree(array[i]);
+                    
+                    push(&temp,stack);
+                    
+            }
+            
+    i++;   
+    }
+    //when it ends th only and top ele wil be having the pointer to root of the expression tree
+    createNode* a=pop(stack);
+    
+    //print inorder of expression tree
+    inorder(&a);
+    
+   
+}
+………...
+end!
